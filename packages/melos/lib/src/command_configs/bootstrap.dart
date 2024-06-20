@@ -13,7 +13,7 @@ import '../lifecycle_hooks/lifecycle_hooks.dart';
 @immutable
 class BootstrapCommandConfigs {
   const BootstrapCommandConfigs({
-    this.runPubGetInParallel = true,
+    this.runPubGetInParallel = ParallelPubGetMode.auto,
     this.runPubGetOffline = false,
     this.enforceLockfile = false,
     this.environment,
@@ -27,12 +27,21 @@ class BootstrapCommandConfigs {
     Map<Object?, Object?> yaml, {
     required String workspacePath,
   }) {
-    final runPubGetInParallel = assertKeyIsA<bool?>(
+    final runPubGetInParallel = assertKeyIsA<String?>(
           key: 'runPubGetInParallel',
           map: yaml,
           path: 'command/bootstrap',
-        ) ??
-        true;
+        ).let((value) => switch(value) {
+          case 'true':
+             return ParallelPubGetMode.enabled;
+          case 'false':
+             ParallelPubGetMode.disabled;
+          case 'auto':
+             ParallelPubGetMode.auto;
+          default:
+            throw Exception('Invalid value for runPubGetInParallel: $value');
+        }) ??
+        ParallelPubGetMode.auto;
 
     final runPubGetOffline = assertKeyIsA<bool?>(
           key: 'runPubGetOffline',
@@ -114,8 +123,8 @@ class BootstrapCommandConfigs {
 
   /// Whether to run `pub get` in parallel during bootstrapping.
   ///
-  /// The default is `true`.
-  final bool runPubGetInParallel;
+  /// The default is `auto`.
+  final ParallelPubGetMode runPubGetInParallel;
 
   /// Whether to attempt to run `pub get` in offline mode during bootstrapping.
   /// Useful in closed network environments with pre-populated pubcaches.
@@ -219,4 +228,14 @@ BootstrapCommandConfigs(
   hooks: $hooks,
 )''';
   }
+}
+
+enum ParallelPubGetMode {
+  enabled(value: 'true'),
+  disabled(value: 'false'),
+  auto(value: 'auto');
+
+  const ParallelPubGetMode({required this.value});
+
+  final String value;
 }

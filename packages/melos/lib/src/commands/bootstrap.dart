@@ -143,9 +143,21 @@ mixin _BootstrapMixin on _CleanMixin {
 
         bootstrappedPackages.forEach(_logBootstrapSuccess);
       },
-      parallelism:
-          workspace.config.commands.bootstrap.runPubGetInParallel ? null : 1,
+      parallelism: _getParallelism(workspace),
     ).drain<void>();
+  }
+
+  int? _getParallelism(MelosWorkspace workspace) {
+    print('lofasz: ${workspace.config.commands.bootstrap.runPubGetInParallel}');
+
+    switch (workspace.config.commands.bootstrap.runPubGetInParallel) {
+      case ParallelPubGetMode.auto:
+        return null; // TODO: Check CI Env variable to determine parallelism.
+      case ParallelPubGetMode.enabled:
+        return null;
+      case ParallelPubGetMode.disabled:
+        return 1;
+    }
   }
 
   Future<void> _generatePubspecOverrides(

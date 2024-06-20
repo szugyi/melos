@@ -11,6 +11,7 @@ categories:
 
 command:
   bootstrap:
+    runPubGetInParallel: true
     environment:
       sdk: ">=3.0.0 <4.0.0"
     dependencies:
